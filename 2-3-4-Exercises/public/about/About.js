@@ -1,22 +1,46 @@
-import { Observable } from "/js/src/index.js";
+import { Observable, fetchClient, RemoteData } from "/js/src/index.js";
+
+export const getFetchStatus = (remoteData) => {
+  return remoteData.match({
+    NotAsked: () => "No data fetched",
+    Loading: () => "Loading",
+    Success: (_res) => `Loaded`,
+    Failure: (error) => `Error: ${error.message}`,
+  });
+};
 
 export default class About extends Observable {
-  constructor() {
+  constructor(loader) {
     super();
-    this.data = {
-      test: ["test data", "test data 2", "test data 3"],
-      test2: ["test data", "test data 2", "test data 3", "test data 4"],
-    };
+    this.data = {};
     this.requestedTimes = 0;
+    this.loader = loader;
+
+    this.remoteData = RemoteData.NotAsked();
   }
 
-  /**
-   * @returns data in JSON format
+  /**~~~~
+   * @return fetches application data in JSON format
    */
   getDetails() {
+    this.remoteData = RemoteData.loading();
+
     this.requestedTimes++;
     this.notify();
 
-    return this.data;
+    this.loader
+      .get("/api/info")
+      .then(async (res) => {
+        this.data = await res.result.data;
+        this.remoteData = RemoteData.success();
+        this.notify();
+        console.log(res.result.data);
+        return this.data;
+      })
+      .catch((_) => {
+        this.remoteData = RemoteData.failure();
+        this.notify();
+        return {};
+      });
   }
 }

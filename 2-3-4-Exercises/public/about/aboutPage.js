@@ -1,6 +1,14 @@
 import { h } from "/js/src/index.js";
 import Button from "../components/Button/Button.js";
 import { iconBook } from "/js/src/icons.js";
+import { getFetchStatus } from "./About.js";
+
+const fetchStatus = (model) => {
+  return h(
+    "p.text-center.success",
+    getFetchStatus(model.aboutModel.remoteData)
+  );
+};
 
 /**
  * Maps row data into <td> components
@@ -12,11 +20,10 @@ const mappedRow = (rowData) => {
 };
 
 /**
- * Page content
+ * Returns rendered table with fetched data
  * @return {vnode}
  */
-let jsonData = {};
-const content = (model) => {
+const renderTable = (jsonData) => {
   const tableData = [];
 
   // get haeders for table component
@@ -30,25 +37,37 @@ const content = (model) => {
     tableData.push(row);
   }
 
-  // return
-  return h("", [
-    Button("Home", (e) => model.router.handleLinkEvent(e), "?page=home"),
-    Button(
-      ["Get data", iconBook()],
-      () => (jsonData = model.aboutModel.getDetails())
-    ),
-    h("table.table", [
-      h("thead", [
-        h(
-          "tr",
-          headers.map((header) => h("th", header))
-        ),
-      ]),
+  return h("table.table", [
+    h("thead", [
       h(
-        "tbody",
-        tableData.slice(1).map((rowData) => mappedRow(rowData))
+        "tr",
+        headers.map((header) => h("th", header))
       ),
     ]),
+    h(
+      "tbody",
+      tableData.slice(1).map((rowData) => mappedRow(rowData))
+    ),
+  ]);
+};
+
+/**
+ * Page content
+ * @return {vnode}
+ */
+const content = (model) => {
+  return h("", [
+    fetchStatus(model),
+    Button("Home", (e) => model.router.handleLinkEvent(e), "?page=home"),
+    Button(["Get data", iconBook()], () => {
+      model.aboutModel.getDetails();
+    }),
+    model.aboutModel.remoteData.match({
+      Success: () => renderTable(model.aboutModel.data),
+      NotAsked: () => null,
+      Loading: () => null,
+      Failure: () => null,
+    }),
   ]);
 };
 

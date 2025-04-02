@@ -7,8 +7,21 @@ import AboutContent from "./about/aboutPage.js";
  * @return {vnode} application view to be drawn according to model
  */
 export default (model) => [
-  h(".flex-column.absolute-fill", [header(model), content(model)]),
+  h(".flex-column.absolute-fill", [
+    randomNumberNode(model),
+    header(model),
+    content(model),
+  ]),
 ];
+
+/**
+ * Random number get via WebSocket
+ * @param {Model} model
+ * @return {vnode}
+ */
+const randomNumberNode = (model) => {
+  return h("p.success", model.randomNumber);
+};
 
 /**
  * Top header of the page

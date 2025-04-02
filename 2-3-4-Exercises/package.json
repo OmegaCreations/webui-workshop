@@ -13,10 +13,18 @@
   },
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "dev": "nodemon --watch index.js --watch lib --watch config.js index.js",
+    "coverage": "nyc npm run test",
+    "test": "mocha --exit test/**/mocha-*"
   },
   "dependencies": {
     "@aliceo2/web-ui": "2.7.3"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "mocha": "^11.1.0",
+    "nyc": "^17.1.0",
+    "puppeteer": "^24.5.0",
+    "sinon": "^20.0.0"
+  }
 }

@@ -3,6 +3,7 @@ import {
   QueryRouter,
   Loader,
   sessionService,
+  WebSocketClient,
 } from "/js/src/index.js";
 import Home from "./home/Home.js";
 import About from "./about/About.js";
@@ -24,12 +25,30 @@ export default class Model extends Observable {
     this.loader = new Loader(this);
     this.loader.bubbleTo(this);
 
+    this.randomNumber = 0;
+    this.ws = new WebSocketClient("ws://localhost:8080");
+
+    this.ws.addListener("authed", () => {
+      console.log("connected!");
+      this.ws.sendMessage({ command: "random" });
+    });
+
+    this.ws.addListener("random-res", (message) => {
+      this.randomNumber = message.payload;
+      this.notify();
+      console.log("Number:", this.randomNumber);
+    });
+
+    this.ws.addListener("error", (error) => {
+      console.error("Err:", error);
+    });
+
     // Home model
     this.homeModel = new Home();
     this.homeModel.bubbleTo(this);
 
     // About model
-    this.aboutModel = new About();
+    this.aboutModel = new About(this.loader);
     this.aboutModel.bubbleTo(this);
 
     // Setup router
@@ -37,7 +56,7 @@ export default class Model extends Observable {
     this.router.observe(this.handleLocationChange.bind(this));
     this.router.bubbleTo(this);
 
-    this.handleLocationChange(); // Init first page
+    this.handleLocationChange();
   }
 
   /**
